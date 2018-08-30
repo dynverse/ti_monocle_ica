@@ -1,6 +1,6 @@
 id: monocle_ica
-docker_repository: dynverse/dynmethods:monocle_ica
-container_url: https://github.com/dynverse/dynmethods/tree/master/containers/monocle_ica
+docker_repository: dynverse/ti_monocle_ica
+container_url: https://github.com/dynverse/ti_monocle_ica
 name: Monocle ICA
 type: algorithm
 platform: R
