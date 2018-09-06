@@ -1,5 +1,6 @@
 id: monocle_ica
 docker_repository: dynverse/ti_monocle_ica
+singularity_collection: 1556
 container_url: https://github.com/dynverse/ti_monocle_ica
 name: Monocle ICA
 type: algorithm
