@@ -12,8 +12,8 @@ data <- read_rds("/ti/input/data.rds")
 params <- jsonlite::read_json("/ti/input/params.json")
 
 #' @examples
-#' data <- dyntoy::generate_dataset(id = "test", num_cells = 300, num_features = 300, model = "linear") %>% c(., .$prior_information)
-#' params <- yaml::read_yaml("containers/monocle_ica/definition.yml")$parameters %>%
+#' data <- dyntoy::generate_dataset(id = "test", num_cells = 300, num_features = 300, model = "tree") %>% c(., .$prior_information)
+#' params <- yaml::read_yaml("containers/ti_monocle_ica/definition.yml")$parameters %>%
 #'   {.[names(.) != "forbidden"]} %>%
 #'   map(~ .$default)
 
@@ -63,8 +63,24 @@ cds <- monocle::reduceDimension(
   auto_param_selection = params$auto_param_selection
 )
 
+# workaround for determining the maximum number of
+# possible branches accoding to the PQ algorithm
+num_q_nodes <- function(cds) {
+  root_cell <- monocle:::select_root_cell(cds, root_state = NULL, NULL)
+  adjusted_S <- t(cds@reducedDimS)
+  dp <- as.matrix(dist(adjusted_S))
+  cellPairwiseDistances(cds) <- as.matrix(dist(adjusted_S))
+  gp <- igraph::graph.adjacency(dp, mode = "undirected", weighted = TRUE)
+  dp_mst <- igraph::minimum.spanning.tree(gp)
+  next_node <<- 0
+  res <- monocle:::pq_helper(dp_mst, use_weights = FALSE, root_node = root_cell)
+  sum(igraph::V(res$subtree)$type == "Q")
+}
+
+branch_node_counts <- max(1, min(data$start_n + data$end_n - 1, num_q_nodes(cds)))
+
 # order the cells
-cds <- monocle::orderCells(cds, num_paths = data$groups_n)
+cds <- monocle::orderCells(cds, num_paths = branch_node_counts)
 
 # TIMING: done with method
 checkpoints$method_aftermethod <- as.numeric(Sys.time())

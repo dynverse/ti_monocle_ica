@@ -8,7 +8,7 @@ Bootstrap: shub
 From: dynverse/dynwrap:bioc
 
 %labels
-    version 0.1.4
+    version 0.1.5
 
 %files
     . /code

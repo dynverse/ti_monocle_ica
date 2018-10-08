@@ -52,9 +52,10 @@ parameters:
     description: minimal mean feature expression, only used when `filter_features` is set to TRUE
 input:
   format: rds
-  required: 
+  required:
   - counts
-  - groups_n
+  - start_n
+  - end_n
 output:
   format: rds
   outputs:
