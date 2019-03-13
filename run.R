@@ -1,3 +1,7 @@
+#!/usr/local/bin/Rscript
+
+task <- dyncli::main()
+
 library(jsonlite)
 library(readr)
 library(dplyr)
@@ -8,16 +12,9 @@ library(monocle)
 #   ____________________________________________________________________________
 #   Load data                                                               ####
 
-data <- read_rds("/ti/input/data.rds")
-params <- jsonlite::read_json("/ti/input/params.json")
+params <- task$params
+counts <- task$counts
 
-#' @examples
-#' data <- dyntoy::generate_dataset(id = "test", num_cells = 300, num_features = 300, model = "tree") %>% c(., .$prior_information)
-#' params <- yaml::read_yaml("containers/ti_monocle_ica/definition.yml")$parameters %>%
-#'   {.[names(.) != "forbidden"]} %>%
-#'   map(~ .$default)
-
-counts <- data$counts
 #   ____________________________________________________________________________
 #   Infer trajectory                                                        ####
 
@@ -77,7 +74,7 @@ num_q_nodes <- function(cds) {
   sum(igraph::V(res$subtree)$type == "Q")
 }
 
-branch_node_counts <- max(1, min(data$start_n + data$end_n - 1, num_q_nodes(cds)))
+branch_node_counts <- max(1, min(task$priors$start_n + task$priors$end_n - 1, num_q_nodes(cds)))
 
 # order the cells
 cds <- monocle::orderCells(cds, num_paths = branch_node_counts)
@@ -103,16 +100,15 @@ cell_graph <- cell_graph %>% select(from, to, length, directed)
 dimred <- t(cds@reducedDimS)
 colnames(dimred) <- paste0("Comp", seq_len(ncol(dimred)))
 
-# wrap output
-output <- lst(
-  cell_ids = rownames(dimred),
-  cell_graph,
-  to_keep,
-  dimred,
-  timings = checkpoints
-)
-
 #   ____________________________________________________________________________
 #   Save output                                                             ####
 
-write_rds(output, "/ti/output/output.rds")
+output <- dynwrap::wrap_data(cell_ids = rownames(dimred)) %>%
+  dynwrap::add_cell_graph(
+    cell_graph = cell_graph,
+    to_keep = to_keep
+  ) %>%
+  dynwrap::add_dimred(dimred) %>%
+  dynwrap::add_timings(checkpoints)
+
+dyncli::write_output(output, task$output)
