@@ -17,7 +17,6 @@ method:
     github: ctrapnell
     ORCID: 0000-0002-8105-4347
 
-
 manuscript:
   doi: 10.1038/nmeth.4402
   google_scholar_cluster_id:
@@ -38,7 +37,6 @@ wrapper:
   - multifurcation
   - binary_tree
   - tree
-  example: /code/example.R
   input_required:
   - counts
   - start_n
