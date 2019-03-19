@@ -12,7 +12,7 @@ library(monocle)
 #   ____________________________________________________________________________
 #   Load data                                                               ####
 
-params <- task$params
+parameters <- task$parameters
 counts <- task$counts
 
 #   ____________________________________________________________________________
@@ -20,8 +20,8 @@ counts <- task$counts
 
 
 # just in case
-if (is.factor(params$norm_method)) {
-  params$norm_method <- as.character(params$norm_method)
+if (is.factor(parameters$norm_method)) {
+  parameters$norm_method <- as.character(parameters$norm_method)
 }
 
 # TIMING: done with preproc
@@ -37,9 +37,9 @@ cds <- BiocGenerics::estimateSizeFactors(cds)
 cds <- BiocGenerics::estimateDispersions(cds)
 
 # filter features if requested
-if (params$filter_features) {
+if (parameters$filter_features) {
   disp_table <- dispersionTable(cds)
-  ordering_genes <- subset(disp_table, mean_expression >= params$filter_features_mean_expression)
+  ordering_genes <- subset(disp_table, mean_expression >= parameters$filter_features_mean_expression)
   cds <- setOrderingFilter(cds, ordering_genes)
 
   print(nrow(ordering_genes))
@@ -48,16 +48,16 @@ if (params$filter_features) {
 # if low # cells or features -> https://github.com/cole-trapnell-lab/monocle-release/issues/26
 # this avoids the error "initial centers are not distinct."
 if (ncol(counts) < 500 || nrow(counts) < 500) {
-  params$auto_param_selection <- FALSE
+  parameters$auto_param_selection <- FALSE
 }
 
 # reduce the dimensionality
 cds <- monocle::reduceDimension(
   cds,
-  max_components = params$max_components,
-  reduction_method = params$reduction_method,
-  norm_method = params$norm_method,
-  auto_param_selection = params$auto_param_selection
+  max_components = parameters$max_components,
+  reduction_method = parameters$reduction_method,
+  norm_method = parameters$norm_method,
+  auto_param_selection = parameters$auto_param_selection
 )
 
 # workaround for determining the maximum number of
@@ -83,7 +83,7 @@ cds <- monocle::orderCells(cds, num_paths = branch_node_counts)
 checkpoints$method_aftermethod <- as.numeric(Sys.time())
 
 # extract the igraph and which cells are on the trajectory
-gr <- cds@auxOrderingData[[params$reduction_method]]$cell_ordering_tree
+gr <- cds@auxOrderingData[[parameters$reduction_method]]$cell_ordering_tree
 to_keep <- setNames(rep(TRUE, nrow(counts)), rownames(counts))
 
 # convert to milestone representation
